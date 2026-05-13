@@ -9,9 +9,54 @@
 
 ## Arquitectura del Proyecto
 
-El proyecto sigue los principios de una Arquitectura Limpia (Clean Architecture), dividida en las siguientes capas:
+BarberiaReservas/
+├── Domain/ # Entidades de negocio
+├── Application/ # Lógica de aplicación (SOLID aquí)
+├── Infrastructure/ # EF Core, repositorios
+└── API/ # Controllers, Program.cs
 
-- **BarberiaReservas.Domain:** Contiene las entidades principales del negocio (`User`, `Service`, `Reservation`, `WorkingHours`, `BlockedDate`). Es el núcleo del sistema y no depende de ninguna otra capa.
-- **BarberiaReservas.Application:** Contiene los casos de uso de la aplicación, interfaces de repositorios, DTOs y lógica de coordinación.
-- **BarberiaReservas.Infrastructure:** Contiene la implementación del acceso a datos usando Entity Framework Core (`AppDbContext`), repositorios y la interacción con servicios de infraestructura externos (como BCrypt para contraseñas).
-- **BarberiaReservas.API:** Capa de presentación y punto de entrada de la aplicación. Expone los controladores REST, configura Swagger, CORS, inyección de dependencias y la configuración de appsettings.
+## Instalación y Configuración
+
+### Prerrequisitos
+
+- .NET SDK 8.0
+- SQL Server Express 2022
+- Git
+
+### Pasos
+
+1. **Clonar el repositorio**
+
+```bash
+git clone https://github.com/tu-usuario/barberia-reservas-api.git
+cd barberia-reservas-api
+```
+
+2. **Restaurar paquetes**
+
+```bash
+dotnet restore
+```
+
+3. **Configurar Connection String**
+
+Editar `BarberiaReservas.API/appsettings.json`:
+
+```json
+"DefaultConnection": "Server=TU_SERVIDOR;Database=BarberiaDB;..."
+```
+
+4. **Aplicar migraciones**
+
+```bash
+dotnet ef database update --project BarberiaReservas.Infrastructure --startup-project BarberiaReservas.API
+```
+
+5. **Ejecutar**
+
+```bash
+cd BarberiaReservas.API
+dotnet run
+```
+
+6. **Abrir Swagger**
