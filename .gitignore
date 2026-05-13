@@ -1,0 +1,47 @@
+# Archivos temporales y de usuario de Visual Studio / Visual Studio Code
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Resultados de compilación (Build results)
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Wa]rmup/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Archivos específicos de Mac/OSX
+.DS_Store
+
+# ReSharper / Rider
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+.idea/
+*.sln.iml
+
+# Archivos de Paquetes (Nuget)
+packages/
+*.nupkg
+
+# Variables de entorno y configuraciones locales
+.env
+appsettings.Development.json
+appsettings.Local.json
+
+# Logs
+*.log
