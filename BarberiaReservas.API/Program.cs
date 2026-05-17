@@ -1,5 +1,7 @@
 using BarberiaReservas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using BarberiaReservas.Application.Interfaces;
+using BarberiaReservas.Application.Services.Mocks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +35,11 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+
+// TODO: TEMPORAL - Reemplazar por implementaciones reales cuando estén listas
+builder.Services.AddScoped<IAvailabilityService, MockAvailabilityService>();
+builder.Services.AddScoped<INotificationService, MockNotificationService>();
+builder.Services.AddScoped<IServiceManager, MockServiceManager>();
 
 var app = builder.Build();
 

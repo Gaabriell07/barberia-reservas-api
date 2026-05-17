@@ -60,3 +60,25 @@ dotnet run
 ```
 
 6. **Abrir Swagger**
+
+## Estrategia de Branching
+
+El proyecto utiliza una estrategia basada en ramas para organizar el trabajo del equipo.
+
+### Ramas principales
+
+- `main` → versión estable del proyecto
+- `dev` → integración y desarrollo general
+
+### Ramas por funcionalidad
+
+Cada integrante debe crear una rama basada en `dev` para trabajar su módulo.
+
+Ejemplos:
+
+```bash
+feature/jwt
+feature/users
+feature/reservations
+feature/services
+```
