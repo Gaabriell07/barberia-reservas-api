@@ -1,5 +1,7 @@
 using BarberiaReservas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using BarberiaReservas.Application.Interfaces;
+using BarberiaReservas.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +35,11 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ITemplateManager, TemplateManager>();
+builder.Services.AddScoped<INotificationChannel, EmailChannel>();
+builder.Services.AddScoped<INotificationChannel, SmsChannel>();
 
 var app = builder.Build();
 
