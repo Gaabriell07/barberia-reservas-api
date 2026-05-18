@@ -37,10 +37,11 @@ builder.Services.AddCors(options =>
 });
 
 // TODO: TEMPORAL - Reemplazar por implementaciones reales cuando estén listas
-builder.Services.AddScoped<IAvailabilityService, MockAvailabilityService>();
-builder.Services.AddScoped<INotificationService, MockNotificationService>();
-builder.Services.AddScoped<IServiceManager, MockServiceManager>();
-
+// Usuarios
+builder.Services.AddScoped<BarberiaReservas.Domain.Interfaces.IUserRepository, BarberiaReservas.Infrastructure.Repositories.UserRepository>();
+builder.Services.AddScoped<IUserValidator, BarberiaReservas.Application.Services.UserValidator>();
+builder.Services.AddScoped<BarberiaReservas.Application.Interfaces.IRoleManager, BarberiaReservas.Application.Services.RoleManager>();
+builder.Services.AddScoped<IUserService, BarberiaReservas.Application.Services.UserService>();
 var app = builder.Build();
 
 // Configure HTTP request pipeline
