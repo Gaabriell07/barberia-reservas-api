@@ -2,6 +2,7 @@ using BarberiaReservas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using BarberiaReservas.Application.Interfaces;
 using BarberiaReservas.Application.Services;
+using BarberiaReservas.Application.Services.Mocks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,8 +11,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { 
-        Title = "Barbería Reservas API", 
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "Barbería Reservas API",
         Version = "v1",
         Description = "Sistema de gestión de reservas para barbería"
     });
@@ -36,6 +38,11 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Mocks de otros módulos si siguen siendo parte del proyecto
+builder.Services.AddScoped<IAvailabilityService, MockAvailabilityService>();
+builder.Services.AddScoped<IServiceManager, MockServiceManager>();
+
+// Tu módulo real de notificaciones
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITemplateManager, TemplateManager>();
 builder.Services.AddScoped<INotificationChannel, EmailChannel>();
