@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using BarberiaReservas.Application.DTOs;
 using BarberiaReservas.Application.Interfaces;
 using BarberiaReservas.Domain.Entities;
 
@@ -9,21 +6,62 @@ namespace BarberiaReservas.Application.Services.Mocks;
 
 public class MockServiceManager : IServiceManager
 {
-    private readonly List<Service> _services = new List<Service>
-    {
-        new Service { Id = 1, Name = "Corte Clásico", Description = "Corte con tijera o máquina", Price = 15.00m, DurationMinutes = 30, IsActive = true, CreatedAt = DateTime.UtcNow },
-        new Service { Id = 2, Name = "Arreglo de Barba", Description = "Perfilado y rebajado de barba", Price = 10.00m, DurationMinutes = 20, IsActive = true, CreatedAt = DateTime.UtcNow },
-        new Service { Id = 3, Name = "Corte Premium + Barba", Description = "Corte completo, lavado y arreglo de barba", Price = 25.00m, DurationMinutes = 60, IsActive = true, CreatedAt = DateTime.UtcNow }
-    };
+    private readonly List<Service> _services = new();
 
-    public async Task<IEnumerable<Service>> GetAllServicesAsync()
+    public Task<IEnumerable<Service>> GetAllAsync()
     {
-        return await Task.FromResult(_services);
+        return Task.FromResult(_services.AsEnumerable());
     }
 
-    public async Task<Service?> GetServiceByIdAsync(int id)
+    public Task<Service?> GetByIdAsync(int id)
     {
         var service = _services.FirstOrDefault(s => s.Id == id);
-        return await Task.FromResult(service);
+        return Task.FromResult(service);
+    }
+
+    public Task<Service> CreateAsync(CreateServiceDto dto)
+    {
+        var service = new Service
+        {
+            Id = _services.Count + 1,
+            Name = dto.Name,
+            Description = dto.Description,
+            Price = dto.Price,
+            DurationMinutes = dto.DurationMinutes,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _services.Add(service);
+
+        return Task.FromResult(service);
+    }
+
+    public Task<bool> UpdateAsync(int id, UpdateServiceDto dto)
+    {
+        var service = _services.FirstOrDefault(s => s.Id == id);
+
+        if (service == null)
+            return Task.FromResult(false);
+
+        service.Name = dto.Name;
+        service.Description = dto.Description;
+        service.Price = dto.Price;
+        service.DurationMinutes = dto.DurationMinutes;
+        service.IsActive = dto.IsActive;
+
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> DeleteAsync(int id)
+    {
+        var service = _services.FirstOrDefault(s => s.Id == id);
+
+        if (service == null)
+            return Task.FromResult(false);
+
+        _services.Remove(service);
+
+        return Task.FromResult(true);
     }
 }
