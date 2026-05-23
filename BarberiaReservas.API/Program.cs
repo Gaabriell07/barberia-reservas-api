@@ -1,6 +1,7 @@
 using BarberiaReservas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using BarberiaReservas.Application.Interfaces;
+using BarberiaReservas.Application.Services;
 using BarberiaReservas.Application.Services.Mocks;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,8 +11,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { 
-        Title = "Barbería Reservas API", 
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "Barbería Reservas API",
         Version = "v1",
         Description = "Sistema de gestión de reservas para barbería"
     });
@@ -36,12 +38,25 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 // TODO: TEMPORAL - Reemplazar por implementaciones reales cuando estén listas
 // Usuarios
 builder.Services.AddScoped<BarberiaReservas.Domain.Interfaces.IUserRepository, BarberiaReservas.Infrastructure.Repositories.UserRepository>();
 builder.Services.AddScoped<IUserValidator, BarberiaReservas.Application.Services.UserValidator>();
 builder.Services.AddScoped<BarberiaReservas.Application.Interfaces.IRoleManager, BarberiaReservas.Application.Services.RoleManager>();
 builder.Services.AddScoped<IUserService, BarberiaReservas.Application.Services.UserService>();
+
+// Mocks de otros módulos si siguen siendo parte del proyecto
+builder.Services.AddScoped<IAvailabilityService, MockAvailabilityService>();
+builder.Services.AddScoped<IServiceManager, MockServiceManager>();
+
+// Tu módulo real de notificaciones
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<ITemplateManager, TemplateManager>();
+builder.Services.AddScoped<INotificationChannel, EmailChannel>();
+builder.Services.AddScoped<INotificationChannel, SmsChannel>();
+
+
 var app = builder.Build();
 
 // Configure HTTP request pipeline
