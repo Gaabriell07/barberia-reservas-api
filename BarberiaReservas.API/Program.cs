@@ -38,6 +38,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+
+// TODO: TEMPORAL - Reemplazar por implementaciones reales cuando estén listas
+// Usuarios
+builder.Services.AddScoped<BarberiaReservas.Domain.Interfaces.IUserRepository, BarberiaReservas.Infrastructure.Repositories.UserRepository>();
+builder.Services.AddScoped<IUserValidator, BarberiaReservas.Application.Services.UserValidator>();
+builder.Services.AddScoped<BarberiaReservas.Application.Interfaces.IRoleManager, BarberiaReservas.Application.Services.RoleManager>();
+builder.Services.AddScoped<IUserService, BarberiaReservas.Application.Services.UserService>();
+
 // Mocks de otros módulos si siguen siendo parte del proyecto
 builder.Services.AddScoped<IAvailabilityService, MockAvailabilityService>();
 builder.Services.AddScoped<IServiceManager, MockServiceManager>();
@@ -47,6 +55,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITemplateManager, TemplateManager>();
 builder.Services.AddScoped<INotificationChannel, EmailChannel>();
 builder.Services.AddScoped<INotificationChannel, SmsChannel>();
+
 
 var app = builder.Build();
 
