@@ -5,7 +5,6 @@ using BarberiaReservas.Application.Services.Mocks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -17,7 +16,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -25,7 +23,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -36,14 +33,17 @@ builder.Services.AddCors(options =>
     });
 });
 
-// TODO: TEMPORAL - Reemplazar por implementaciones reales cuando estén listas
 builder.Services.AddScoped<IAvailabilityService, MockAvailabilityService>();
 builder.Services.AddScoped<INotificationService, MockNotificationService>();
 builder.Services.AddScoped<IServiceManager, MockServiceManager>();
+builder.Services.AddScoped<IUserService, MockUserService>();
+
+builder.Services.AddScoped<IAuthService, BarberiaReservas.Application.Services.AuthService>();
+builder.Services.AddScoped<ITokenGenerator, BarberiaReservas.Application.Services.JwtTokenGenerator>();
+builder.Services.AddScoped<IPasswordHasher, BarberiaReservas.Application.Services.PasswordHasher>();
 
 var app = builder.Build();
 
-// Configure HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
