@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BarberiaReservas.Application.Interfaces;
+﻿namespace BarberiaReservas.Application.Interfaces;
 
 public interface IRoleManager
 {
