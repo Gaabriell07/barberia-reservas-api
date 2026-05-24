@@ -2,7 +2,6 @@ using BarberiaReservas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using BarberiaReservas.Application.Interfaces;
 using BarberiaReservas.Application.Services;
-using BarberiaReservas.Application.Services.Mocks;
 using BarberiaReservas.Domain.Interfaces; // Para IUserRepository
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,9 +46,7 @@ builder.Services.AddScoped<IAuthService, BarberiaReservas.Application.Services.A
 builder.Services.AddScoped<ITokenGenerator, BarberiaReservas.Application.Services.JwtTokenGenerator>();
 builder.Services.AddScoped<IPasswordHasher, BarberiaReservas.Application.Services.PasswordHasher>();
 
-// Mocks y Notificaciones
-builder.Services.AddScoped<IAvailabilityService, MockAvailabilityService>();
-builder.Services.AddScoped<IServiceManager, MockServiceManager>();
+//Notificaciones
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITemplateManager, TemplateManager>();
 builder.Services.AddScoped<INotificationChannel, EmailChannel>();
