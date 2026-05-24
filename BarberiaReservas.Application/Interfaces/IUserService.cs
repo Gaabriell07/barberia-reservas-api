@@ -1,14 +1,12 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using BarberiaReservas.Domain.Entities;
+using BarberiaReservas.Application.DTOs;
 
 namespace BarberiaReservas.Application.Interfaces;
 
 public interface IUserService
 {
-    Task<User?> GetUserByIdAsync(int id);
-    Task<IEnumerable<User>> GetAllUsersAsync();
-    // Métodos añadidos para que el módulo de Auth pueda delegar la persistencia respetando SRP
-    Task<User?> GetUserByEmailAsync(string email);
-    Task CreateUserAsync(User user);
+    Task<IEnumerable<UserResponseDto>> GetAllAsync();
+    Task<UserResponseDto?> GetByIdAsync(int id);
+    Task<UserResponseDto> CreateAsync(CreateUserDto dto);
+    Task<UserResponseDto> UpdateAsync(int id, UpdateUserDto dto);
+    Task<bool> DeactivateAsync(int id);
 }
