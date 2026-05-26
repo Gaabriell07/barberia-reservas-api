@@ -52,6 +52,12 @@ builder.Services.AddScoped<ITemplateManager, TemplateManager>();
 builder.Services.AddScoped<INotificationChannel, EmailChannel>();
 builder.Services.AddScoped<INotificationChannel, SmsChannel>();
 
+// Reservaciones
+builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<IReservationValidator, ReservationValidator>();
+builder.Services.AddScoped<IReservationStateManager, ReservationStateManager>();
+builder.Services.AddScoped<IReservationRepository, BarberiaReservas.Infrastructure.Repositories.ReservationRepository>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
