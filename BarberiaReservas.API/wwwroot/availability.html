@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Disponibilidad - Demo</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <h2>Disponibilidad</h2>
+  <p>Consulta rápida de franjas horarias disponibles (demo)</p>
+  <label>Fecha: <input type="date" id="date" /></label>
+  <label>ServiceId: <input type="number" id="serviceId" value="1" /></label>
+  <button id="check">Consultar</button>
+  <pre id="result"></pre>
+
+  <script>
+    document.getElementById('check').addEventListener('click', async () => {
+      const date = document.getElementById('date').value;
+      const serviceId = document.getElementById('serviceId').value;
+      const res = await fetch(`/api/availability/slots?date=${date}&serviceId=${serviceId}`);
+      const data = await res.json();
+      document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+    });
+  </script>
+</body>
+</html>
