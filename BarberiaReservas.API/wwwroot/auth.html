@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Autenticación - Demo</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <h2>Autenticación</h2>
+  <p>Registrar y loguear usuario (demo)</p>
+  <label>Email: <input type="email" id="email" value="test@example.com" /></label>
+  <label>Password: <input type="password" id="password" value="Password123!" /></label>
+  <button id="register">Registrar</button>
+  <button id="login">Login</button>
+  <pre id="result"></pre>
+
+  <script>
+    document.getElementById('register').addEventListener('click', async () => {
+      const payload = {
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      };
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+    });
+
+    document.getElementById('login').addEventListener('click', async () => {
+      const payload = {
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      };
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+    });
+  </script>
+</body>
+</html>
