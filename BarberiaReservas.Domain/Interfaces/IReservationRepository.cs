@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using BarberiaReservas.Domain.Entities;
 
 namespace BarberiaReservas.Domain.Interfaces;
@@ -7,8 +5,9 @@ namespace BarberiaReservas.Domain.Interfaces;
 public interface IReservationRepository
 {
     Task<Reservation?> GetByIdAsync(int id);
-    Task<IEnumerable<Reservation>> GetByUserIdAsync(int userId);
     Task<IEnumerable<Reservation>> GetAllAsync();
-    Task AddAsync(Reservation reservation);
-    Task UpdateAsync(Reservation reservation);
+    Task<IEnumerable<Reservation>> GetByUserIdAsync(int userId);
+    Task<Reservation> CreateAsync(Reservation reservation);
+    Task<Reservation> UpdateAsync(Reservation reservation);
+    Task<bool> DeleteAsync(int id);
 }

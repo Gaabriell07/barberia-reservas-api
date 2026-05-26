@@ -2,7 +2,6 @@ using BarberiaReservas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using BarberiaReservas.Application.Interfaces;
 using BarberiaReservas.Application.Services;
-using BarberiaReservas.Application.Services.Mocks;
 using BarberiaReservas.Domain.Interfaces; // Para IUserRepository
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,19 +40,23 @@ builder.Services.AddScoped<IUserValidator, BarberiaReservas.Application.Services
 builder.Services.AddScoped<IRoleManager, BarberiaReservas.Application.Services.RoleManager>();
 builder.Services.AddScoped<IUserService, BarberiaReservas.Application.Services.UserService>();
 
-builder.Services.AddScoped<BarberiaReservas.Domain.Interfaces.IReservationRepository, BarberiaReservas.Infrastructure.Repositories.ReservationRepository>();
-builder.Services.AddScoped<BarberiaReservas.Application.Interfaces.IReservationService, BarberiaReservas.Application.Services.ReservationService>();
+
 
 builder.Services.AddScoped<IAuthService, BarberiaReservas.Application.Services.AuthService>();
 builder.Services.AddScoped<ITokenGenerator, BarberiaReservas.Application.Services.JwtTokenGenerator>();
 builder.Services.AddScoped<IPasswordHasher, BarberiaReservas.Application.Services.PasswordHasher>();
 
-builder.Services.AddScoped<IAvailabilityService, MockAvailabilityService>();
-builder.Services.AddScoped<IServiceManager, MockServiceManager>();
+//Notificaciones
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITemplateManager, TemplateManager>();
 builder.Services.AddScoped<INotificationChannel, EmailChannel>();
 builder.Services.AddScoped<INotificationChannel, SmsChannel>();
+
+// Reservaciones
+builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<IReservationValidator, ReservationValidator>();
+builder.Services.AddScoped<IReservationStateManager, ReservationStateManager>();
+builder.Services.AddScoped<IReservationRepository, BarberiaReservas.Infrastructure.Repositories.ReservationRepository>();
 
 var app = builder.Build();
 

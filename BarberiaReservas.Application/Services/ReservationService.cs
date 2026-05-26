@@ -1,7 +1,7 @@
-using BarberiaReservas.Application.DTOs;
+﻿using BarberiaReservas.Application.DTOs;
 using BarberiaReservas.Application.Interfaces;
 using BarberiaReservas.Domain.Entities;
-using BarberiaReservas.Domain.Interfaces; // <-- IMPORTANTE: Cambiamos Infrastructure por Domain
+using BarberiaReservas.Domain.Interfaces;
 
 namespace BarberiaReservas.Application.Services;
 
@@ -9,7 +9,7 @@ public class ReservationService : IReservationService
 {
     private readonly IReservationValidator _validator;
     private readonly IReservationStateManager _stateManager;
-    private readonly IReservationRepository _repository; // <-- Inyectamos el Repositorio en vez del DbContext
+    private readonly IReservationRepository _repository;
 
     public ReservationService(
         IReservationValidator validator,
@@ -92,9 +92,9 @@ public class ReservationService : IReservationService
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _repository.AddAsync(reservation);
+            var createdReservation = await _repository.CreateAsync(reservation);
 
-            return MapToDto(reservation);
+            return MapToDto(createdReservation);
         }
         catch (Exception ex)
         {
@@ -126,9 +126,9 @@ public class ReservationService : IReservationService
             reservation.Status = dto.Status;
             reservation.UpdatedAt = DateTime.UtcNow;
 
-            await _repository.UpdateAsync(reservation);
+            var updatedReservation = await _repository.UpdateAsync(reservation);
 
-            return MapToDto(reservation);
+            return MapToDto(updatedReservation);
         }
         catch (Exception ex)
         {
@@ -152,7 +152,6 @@ public class ReservationService : IReservationService
             reservation.UpdatedAt = DateTime.UtcNow;
 
             await _repository.UpdateAsync(reservation);
-
             await _stateManager.CancelReservationAsync(reservationId);
 
             return true;
