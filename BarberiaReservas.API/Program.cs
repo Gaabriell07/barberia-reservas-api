@@ -36,18 +36,18 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Usuarios (Código de Jair)
 builder.Services.AddScoped<IUserRepository, BarberiaReservas.Infrastructure.Repositories.UserRepository>();
 builder.Services.AddScoped<IUserValidator, BarberiaReservas.Application.Services.UserValidator>();
 builder.Services.AddScoped<IRoleManager, BarberiaReservas.Application.Services.RoleManager>();
 builder.Services.AddScoped<IUserService, BarberiaReservas.Application.Services.UserService>();
 
-// Auth (TU CÓDIGO)
+builder.Services.AddScoped<BarberiaReservas.Domain.Interfaces.IReservationRepository, BarberiaReservas.Infrastructure.Repositories.ReservationRepository>();
+builder.Services.AddScoped<BarberiaReservas.Application.Interfaces.IReservationService, BarberiaReservas.Application.Services.ReservationService>();
+
 builder.Services.AddScoped<IAuthService, BarberiaReservas.Application.Services.AuthService>();
 builder.Services.AddScoped<ITokenGenerator, BarberiaReservas.Application.Services.JwtTokenGenerator>();
 builder.Services.AddScoped<IPasswordHasher, BarberiaReservas.Application.Services.PasswordHasher>();
 
-// Mocks y Notificaciones
 builder.Services.AddScoped<IAvailabilityService, MockAvailabilityService>();
 builder.Services.AddScoped<IServiceManager, MockServiceManager>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
