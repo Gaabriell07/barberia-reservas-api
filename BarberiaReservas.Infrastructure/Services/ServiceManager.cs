@@ -38,6 +38,7 @@ public class ServiceManager : IServiceManager
         };
 
         _context.Services.Add(service);
+
         await _context.SaveChangesAsync();
 
         return service;

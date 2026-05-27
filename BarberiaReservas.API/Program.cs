@@ -1,7 +1,6 @@
 using BarberiaReservas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using BarberiaReservas.Application.Interfaces;
-using BarberiaReservas.Application.Services.Mocks;
 using BarberiaReservas.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,10 +8,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { 
-        Title = "Barbería Reservas API", 
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "Barbería Reservas API",
         Version = "v1",
         Description = "Sistema de gestión de reservas para barbería"
     });
@@ -37,9 +38,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// TODO: TEMPORAL - Reemplazar por implementaciones reales cuando estén listas
-builder.Services.AddScoped<IAvailabilityService, MockAvailabilityService>();
-builder.Services.AddScoped<INotificationService, MockNotificationService>();
 builder.Services.AddScoped<IServiceManager, ServiceManager>();
 
 var app = builder.Build();
@@ -52,8 +50,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseCors("AllowAll");
+
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
