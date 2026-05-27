@@ -41,6 +41,16 @@ public class ReservationRepository : IReservationRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Reservation>> GetByBarberIdAsync(int barberId)
+    {
+        return await _context.Reservations
+            .Include(r => r.User)
+            .Include(r => r.Service)
+            .Where(r => r.BarberId == barberId)
+            .OrderByDescending(r => r.DateTime)
+            .ToListAsync();
+    }
+
     public async Task<Reservation> CreateAsync(Reservation reservation)
     {
         _context.Reservations.Add(reservation);

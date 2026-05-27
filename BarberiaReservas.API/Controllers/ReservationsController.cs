@@ -17,9 +17,6 @@ public class ReservationsController : ControllerBase
         _notificationService = notificationService;
     }
 
-    /// <summary>
-    /// Obtiene todas las reservaciones
-    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAllReservations()
     {
@@ -34,9 +31,6 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Obtiene una reservación por ID
-    /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetReservation(int id)
     {
@@ -51,9 +45,6 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Obtiene las reservaciones de un usuario
-    /// </summary>
     [HttpGet("user/{userId}")]
     public async Task<IActionResult> GetUserReservations(int userId)
     {
@@ -68,9 +59,6 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Crea una nueva reservación
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> CreateReservation([FromBody] CreateReservationDto dto)
     {
@@ -88,9 +76,6 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Actualiza una reservación existente
-    /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateReservation(int id, [FromBody] UpdateReservationDto dto)
     {
@@ -108,9 +93,6 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Cancela una reservación
-    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> CancelReservation(int id)
     {

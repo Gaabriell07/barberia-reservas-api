@@ -4,7 +4,7 @@ namespace BarberiaReservas.Application.Services;
 
 public class ReservationStateManager : IReservationStateManager
 {
-    // Mock dictionary para almacenar estados (en producción sería base de datos)
+    
     private static readonly Dictionary<int, string> _reservationStates = new();
 
     public async Task<bool> ConfirmReservationAsync(int reservationId)

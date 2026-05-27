@@ -71,10 +71,11 @@ public class AuthService : IAuthService
     {
         return new AuthResponseDto
         {
+            Id    = user.Id,
             Token = token,
             Email = user.Email,
-            Name = user.Name,
-            Role = user.Role
+            Name  = user.Name,
+            Role  = user.Role
         };
     }
 }

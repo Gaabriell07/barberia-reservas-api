@@ -1,4 +1,4 @@
-﻿using BarberiaReservas.Application.DTOs;
+using BarberiaReservas.Application.DTOs;
 using BarberiaReservas.Application.Interfaces;
 using BarberiaReservas.Domain.Entities;
 using BarberiaReservas.Domain.Interfaces;
@@ -76,16 +76,16 @@ public class ReservationService : IReservationService
     {
         try
         {
-            // Validar el DTO
+            
             var isValid = await _validator.ValidateAsync(dto);
             if (!isValid)
                 throw new Exception(_validator.GetLastError() ?? "Validación fallida");
 
-            // Crear la nueva reservación
             var reservation = new Reservation
             {
                 UserId = dto.UserId,
                 ServiceId = dto.ServiceId,
+                BarberId = dto.BarberId,
                 DateTime = dto.DateTime,
                 Notes = dto.Notes,
                 Status = "Pending",
@@ -109,7 +109,6 @@ public class ReservationService : IReservationService
             if (id <= 0)
                 throw new Exception("ID inválido");
 
-            // Validar el DTO
             var isValid = await _validator.ValidateUpdateAsync(dto);
             if (!isValid)
                 throw new Exception(_validator.GetLastError() ?? "Validación fallida");
@@ -119,7 +118,6 @@ public class ReservationService : IReservationService
             if (reservation == null)
                 throw new Exception("Reservación no encontrada");
 
-            // Actualizar los campos
             reservation.ServiceId = dto.ServiceId;
             reservation.DateTime = dto.DateTime;
             reservation.Notes = dto.Notes;
@@ -166,14 +164,18 @@ public class ReservationService : IReservationService
     {
         return new ReservationResponseDto
         {
-            Id = reservation.Id,
-            UserId = reservation.UserId,
-            ServiceId = reservation.ServiceId,
-            DateTime = reservation.DateTime,
-            Status = reservation.Status,
-            Notes = reservation.Notes,
-            CreatedAt = reservation.CreatedAt,
-            UpdatedAt = reservation.UpdatedAt
+            Id          = reservation.Id,
+            UserId      = reservation.UserId,
+            UserName    = reservation.User?.Name    ?? $"Cliente #{reservation.UserId}",
+            ServiceId   = reservation.ServiceId,
+            ServiceName = reservation.Service?.Name ?? $"Servicio #{reservation.ServiceId}",
+            BarberId    = reservation.BarberId,
+            BarberName  = string.Empty, 
+            DateTime    = reservation.DateTime,
+            Status      = reservation.Status,
+            Notes       = reservation.Notes,
+            CreatedAt   = reservation.CreatedAt,
+            UpdatedAt   = reservation.UpdatedAt
         };
     }
 }
