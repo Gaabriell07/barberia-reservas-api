@@ -87,6 +87,9 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null) return false;
 
+        if (!user.IsActive)
+            throw new InvalidOperationException("El usuario ya está desactivado.");
+
         user.IsActive = false;
         await _userRepository.UpdateAsync(user);
         return true;

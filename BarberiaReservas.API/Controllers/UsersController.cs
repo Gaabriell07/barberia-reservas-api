@@ -65,9 +65,16 @@ public class UsersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Deactivate(int id)
     {
-        var result = await _userService.DeactivateAsync(id);
-        if (!result) return NotFound("Usuario no encontrado.");
-        return Ok("Usuario desactivado correctamente.");
+        try
+        {
+            var result = await _userService.DeactivateAsync(id);
+            if (!result) return NotFound("Usuario no encontrado.");
+            return Ok("Usuario desactivado y acceso bloqueado correctamente.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPut("change-password")]
