@@ -1,4 +1,4 @@
-﻿using BarberiaReservas.Domain.Entities;
+using BarberiaReservas.Domain.Entities;
 using BarberiaReservas.Domain.Interfaces;
 using BarberiaReservas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +27,7 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByEmailAsync(string email)
     {
         return await _context.Users
+            .Include(u => u.RefreshTokens)
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
@@ -47,5 +48,12 @@ public class UserRepository : IUserRepository
     public async Task<bool> ExistsEmailAsync(string email)
     {
         return await _context.Users.AnyAsync(u => u.Email == email);
+    }
+
+    public async Task<User?> GetByRefreshTokenAsync(string token)
+    {
+        return await _context.Users
+            .Include(u => u.RefreshTokens)
+            .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
     }
 }
