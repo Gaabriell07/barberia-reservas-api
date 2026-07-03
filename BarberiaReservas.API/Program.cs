@@ -26,10 +26,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-builder.Services.AddScoped<IServiceRepository, ServiceRepository>(
-    
-);
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -39,6 +35,9 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IServiceManager, ServiceManager>();
 
 builder.Services.AddScoped<IUserRepository, BarberiaReservas.Infrastructure.Repositories.UserRepository>();
 builder.Services.AddScoped<IUserValidator, BarberiaReservas.Application.Services.UserValidator>();
