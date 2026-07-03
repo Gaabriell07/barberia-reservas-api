@@ -1,9 +1,11 @@
-﻿using BarberiaReservas.Application.DTOs;
+using BarberiaReservas.Application.DTOs;
 using BarberiaReservas.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BarberiaReservas.API.Controllers;
 
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
