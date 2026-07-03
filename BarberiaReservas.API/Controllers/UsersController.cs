@@ -87,4 +87,11 @@ public class UsersController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
+    [HttpGet("paged")]
+    public async Task<IActionResult> GetPaged([FromQuery] UserQueryDto query)
+    {
+        var result = await _userService.GetPagedAsync(query);
+        return Ok(result);
+    }
 }

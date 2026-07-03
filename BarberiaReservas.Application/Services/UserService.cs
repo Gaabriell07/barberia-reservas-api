@@ -92,6 +92,22 @@ public class UserService : IUserService
         return true;
     }
 
+    public async Task<PagedResultDto<UserResponseDto>> GetPagedAsync(UserQueryDto query)
+    {
+        var (users, totalCount) = await _userRepository.GetPagedAsync(
+            query.PageNumber,
+            query.PageSize,
+            query.SearchTerm);
+
+        return new PagedResultDto<UserResponseDto>
+        {
+            Items = users.Select(MapToResponseDto),
+            TotalCount = totalCount,
+            PageNumber = query.PageNumber,
+            PageSize = query.PageSize
+        };
+    }
+
     private UserResponseDto MapToResponseDto(User user)
     {
         return new UserResponseDto
