@@ -170,7 +170,7 @@ public class ReservationService : IReservationService
             ServiceId   = reservation.ServiceId,
             ServiceName = reservation.Service?.Name ?? $"Servicio #{reservation.ServiceId}",
             BarberId    = reservation.BarberId,
-            BarberName  = string.Empty, 
+            BarberName  = reservation.Barber?.Name ?? $"Barbero #{reservation.BarberId}",
             DateTime    = reservation.DateTime,
             Status      = reservation.Status,
             Notes       = reservation.Notes,
