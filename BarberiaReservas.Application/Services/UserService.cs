@@ -141,4 +141,12 @@ public class UserService : IUserService
         await _userRepository.UpdateAsync(user);
         return true;
     }
+    public async Task<IEnumerable<UserResponseDto>> GetByRoleAsync(string roleName)
+    {
+        if (!_roleManager.IsValidRole(roleName))
+            throw new ArgumentException("El rol especificado no es válido.");
+
+        var users = await _userRepository.GetByRoleAsync(roleName);
+        return users.Select(MapToResponseDto);
+    }
 }

@@ -67,4 +67,10 @@ public class UserRepository : IUserRepository
 
         return (users, totalCount);
     }
+    public async Task<IEnumerable<User>> GetByRoleAsync(string roleName)
+    {
+        return await _context.Users
+            .Where(u => u.Role == roleName && u.IsActive)
+            .ToListAsync();
+    }
 }

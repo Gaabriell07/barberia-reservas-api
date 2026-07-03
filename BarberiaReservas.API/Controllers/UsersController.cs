@@ -94,4 +94,18 @@ public class UsersController : ControllerBase
         var result = await _userService.GetPagedAsync(query);
         return Ok(result);
     }
+
+    [HttpGet("role/{roleName}")]
+    public async Task<IActionResult> GetByRole(string roleName)
+    {
+        try
+        {
+            var users = await _userService.GetByRoleAsync(roleName);
+            return Ok(users);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }

@@ -11,4 +11,5 @@ public interface IUserRepository
     Task<User> UpdateAsync(User user);
     Task<bool> ExistsEmailAsync(string email);
     Task<(IEnumerable<User> Users, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm);
+    Task<IEnumerable<User>> GetByRoleAsync(string roleName);
 }
