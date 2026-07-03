@@ -5,7 +5,16 @@ namespace BarberiaReservas.Application.Services;
 
 public class ReservationValidator : IReservationValidator
 {
+    // Duración temporal hasta que exista un repositorio de servicios para leer Service.DurationMinutes.
+    private const int DefaultDurationMinutes = 30;
+
+    private readonly IAvailabilityService _availabilityService;
     private string? _lastError;
+
+    public ReservationValidator(IAvailabilityService availabilityService)
+    {
+        _availabilityService = availabilityService;
+    }
 
     public async Task<bool> ValidateAsync(CreateReservationDto dto)
     {
@@ -33,7 +42,14 @@ public class ReservationValidator : IReservationValidator
             return false;
         }
 
-        return await Task.FromResult(true);
+        var isAvailable = await _availabilityService.IsTimeSlotAvailableAsync(dto.DateTime, DefaultDurationMinutes, dto.BarberId);
+        if (!isAvailable)
+        {
+            _lastError = "El horario solicitado no está disponible";
+            return false;
+        }
+
+        return true;
     }
 
     public async Task<bool> ValidateUpdateAsync(UpdateReservationDto dto)
