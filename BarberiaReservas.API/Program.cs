@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using BarberiaReservas.Application.Interfaces;
 using BarberiaReservas.Application.Services;
 using BarberiaReservas.Domain.Interfaces; 
+using BarberiaReservas.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlOptions => sqlOptions.EnableRetryOnFailure()
     )
+);
+
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>(
+    
 );
 
 builder.Services.AddCors(options =>
