@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using BarberiaReservas.Application.DTOs;
 using BarberiaReservas.Application.Interfaces;
 using BarberiaReservas.Domain.Entities;
+using BarberiaReservas.Domain.Interfaces;
 
 namespace BarberiaReservas.Application.Services;
 
@@ -10,21 +11,21 @@ public class AuthService : IAuthService
 {
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenGenerator _tokenGenerator;
-    private readonly IUserService _userService;
+    private readonly IUserRepository _userRepository;
 
     public AuthService(
         IPasswordHasher passwordHasher,
         ITokenGenerator tokenGenerator,
-        IUserService userService)
+        IUserRepository userRepository)
     {
         _passwordHasher = passwordHasher;
         _tokenGenerator = tokenGenerator;
-        _userService = userService;
+        _userRepository = userRepository;
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
     {
-        var user = await _userService.GetUserByEmailAsync(dto.Email);
+        var user = await _userRepository.GetByEmailAsync(dto.Email);
 
         if (user == null)
             throw new Exception("Usuario no encontrado");
@@ -41,7 +42,7 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
     {
-        var existingUser = await _userService.GetUserByEmailAsync(dto.Email);
+        var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
 
         if (existingUser != null)
             throw new Exception("El email ya está registrado");
@@ -59,7 +60,7 @@ public class AuthService : IAuthService
             IsActive = true
         };
 
-        await _userService.CreateUserAsync(user);
+        await _userRepository.CreateAsync(user);
 
         var token = _tokenGenerator.GenerateToken(user);
 
@@ -70,10 +71,11 @@ public class AuthService : IAuthService
     {
         return new AuthResponseDto
         {
+            Id    = user.Id,
             Token = token,
             Email = user.Email,
-            Name = user.Name,
-            Role = user.Role
+            Name  = user.Name,
+            Role  = user.Role
         };
     }
 }

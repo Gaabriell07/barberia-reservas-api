@@ -17,13 +17,8 @@ public class AvailabilityController : ControllerBase
         _availabilityService = availabilityService;
     }
 
-    /// <summary>
-    /// Obtiene los slots disponibles para una fecha específica y servicio.
-    /// </summary>
-    /// <param name="date">Fecha en formato YYYY-MM-DD</param>
-    /// <param name="serviceId">ID del servicio (ahora asume 30 min por defecto)</param>
     [HttpGet("slots")]
-    public async Task<IActionResult> GetAvailableSlots([FromQuery] string date, [FromQuery] int serviceId = 1)
+    public async Task<IActionResult> GetAvailableSlots([FromQuery] string date, [FromQuery] int serviceId = 1, [FromQuery] int barberId = 1)
     {
         try
         {
@@ -32,11 +27,12 @@ public class AvailabilityController : ControllerBase
                 return BadRequest(new { message = "Fecha inválida. Usa formato YYYY-MM-DD." });
             }
 
-            var slots = await _availabilityService.GetAvailableSlotsAsync(parsedDate, serviceId);
+            var slots = await _availabilityService.GetAvailableSlotsAsync(parsedDate, serviceId, barberId);
             return Ok(new
             {
                 date = parsedDate.Date.ToString("yyyy-MM-dd"),
                 serviceId = serviceId,
+                barberId = barberId,
                 availableSlots = slots
             });
         }
@@ -46,13 +42,8 @@ public class AvailabilityController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Verifica si un slot específico está disponible.
-    /// </summary>
-    /// <param name="dateTime">DateTime en formato ISO 8601 (ej: 2024-12-20T10:30:00)</param>
-    /// <param name="durationMinutes">Duración del servicio en minutos</param>
     [HttpGet("check")]
-    public async Task<IActionResult> CheckAvailability([FromQuery] string dateTime, [FromQuery] int durationMinutes = 30)
+    public async Task<IActionResult> CheckAvailability([FromQuery] string dateTime, [FromQuery] int durationMinutes = 30, [FromQuery] int barberId = 1)
     {
         try
         {
@@ -61,11 +52,12 @@ public class AvailabilityController : ControllerBase
                 return BadRequest(new { message = "DateTime inválido. Usa formato ISO 8601." });
             }
 
-            var isAvailable = await _availabilityService.IsTimeSlotAvailableAsync(parsedDateTime, durationMinutes);
+            var isAvailable = await _availabilityService.IsTimeSlotAvailableAsync(parsedDateTime, durationMinutes, barberId);
             return Ok(new
             {
                 dateTime = parsedDateTime,
                 durationMinutes = durationMinutes,
+                barberId = barberId,
                 isAvailable = isAvailable
             });
         }

@@ -2,7 +2,6 @@ using BarberiaReservas.Application.Interfaces;
 
 namespace BarberiaReservas.Application.Services;
 
-
 public class PasswordHasher : IPasswordHasher
 {
 

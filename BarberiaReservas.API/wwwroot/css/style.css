@@ -1,0 +1,6 @@
+body { font-family: Arial, sans-serif; margin: 2rem; }
+header { margin-bottom: 1rem; }
+nav a { margin-right: 1rem; }
+pre { background:#f7f7f7; padding:1rem; border-radius:4px; }
+button{ padding:0.4rem 0.6rem; }
+label{ display:block; margin:0.4rem 0; }

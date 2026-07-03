@@ -1,8 +1,7 @@
-﻿using BarberiaReservas.Application.DTOs;
+using BarberiaReservas.Application.DTOs;
 using BarberiaReservas.Application.Interfaces;
 using BarberiaReservas.Domain.Entities;
-using BarberiaReservas.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using BarberiaReservas.Domain.Interfaces;
 
 namespace BarberiaReservas.Application.Services;
 
@@ -10,16 +9,16 @@ public class ReservationService : IReservationService
 {
     private readonly IReservationValidator _validator;
     private readonly IReservationStateManager _stateManager;
-    private readonly AppDbContext _context;
+    private readonly IReservationRepository _repository;
 
     public ReservationService(
         IReservationValidator validator,
         IReservationStateManager stateManager,
-        AppDbContext context)
+        IReservationRepository repository)
     {
         _validator = validator;
         _stateManager = stateManager;
-        _context = context;
+        _repository = repository;
     }
 
     public async Task<ReservationResponseDto> GetReservationAsync(int id)
@@ -29,8 +28,7 @@ public class ReservationService : IReservationService
             if (id <= 0)
                 throw new Exception("ID inválido");
 
-            var reservation = await _context.Reservations
-                .FirstOrDefaultAsync(r => r.Id == id);
+            var reservation = await _repository.GetByIdAsync(id);
 
             if (reservation == null)
                 throw new Exception("Reservación no encontrada");
@@ -50,10 +48,7 @@ public class ReservationService : IReservationService
             if (userId <= 0)
                 throw new Exception("UserId inválido");
 
-            var reservations = await _context.Reservations
-                .Where(r => r.UserId == userId)
-                .OrderByDescending(r => r.DateTime)
-                .ToListAsync();
+            var reservations = await _repository.GetByUserIdAsync(userId);
 
             return reservations.Select(MapToDto);
         }
@@ -67,9 +62,7 @@ public class ReservationService : IReservationService
     {
         try
         {
-            var reservations = await _context.Reservations
-                .OrderByDescending(r => r.DateTime)
-                .ToListAsync();
+            var reservations = await _repository.GetAllAsync();
 
             return reservations.Select(MapToDto);
         }
@@ -83,26 +76,25 @@ public class ReservationService : IReservationService
     {
         try
         {
-            // Validar el DTO
+            
             var isValid = await _validator.ValidateAsync(dto);
             if (!isValid)
                 throw new Exception(_validator.GetLastError() ?? "Validación fallida");
 
-            // Crear la nueva reservación
             var reservation = new Reservation
             {
                 UserId = dto.UserId,
                 ServiceId = dto.ServiceId,
+                BarberId = dto.BarberId,
                 DateTime = dto.DateTime,
                 Notes = dto.Notes,
                 Status = "Pending",
                 CreatedAt = DateTime.UtcNow
             };
 
-            _context.Reservations.Add(reservation);
-            await _context.SaveChangesAsync();
+            var createdReservation = await _repository.CreateAsync(reservation);
 
-            return MapToDto(reservation);
+            return MapToDto(createdReservation);
         }
         catch (Exception ex)
         {
@@ -117,28 +109,24 @@ public class ReservationService : IReservationService
             if (id <= 0)
                 throw new Exception("ID inválido");
 
-            // Validar el DTO
             var isValid = await _validator.ValidateUpdateAsync(dto);
             if (!isValid)
                 throw new Exception(_validator.GetLastError() ?? "Validación fallida");
 
-            var reservation = await _context.Reservations
-                .FirstOrDefaultAsync(r => r.Id == id);
+            var reservation = await _repository.GetByIdAsync(id);
 
             if (reservation == null)
                 throw new Exception("Reservación no encontrada");
 
-            // Actualizar los campos
             reservation.ServiceId = dto.ServiceId;
             reservation.DateTime = dto.DateTime;
             reservation.Notes = dto.Notes;
             reservation.Status = dto.Status;
             reservation.UpdatedAt = DateTime.UtcNow;
 
-            _context.Reservations.Update(reservation);
-            await _context.SaveChangesAsync();
+            var updatedReservation = await _repository.UpdateAsync(reservation);
 
-            return MapToDto(reservation);
+            return MapToDto(updatedReservation);
         }
         catch (Exception ex)
         {
@@ -153,8 +141,7 @@ public class ReservationService : IReservationService
             if (reservationId <= 0)
                 return false;
 
-            var reservation = await _context.Reservations
-                .FirstOrDefaultAsync(r => r.Id == reservationId);
+            var reservation = await _repository.GetByIdAsync(reservationId);
 
             if (reservation == null)
                 return false;
@@ -162,9 +149,7 @@ public class ReservationService : IReservationService
             reservation.Status = "Cancelled";
             reservation.UpdatedAt = DateTime.UtcNow;
 
-            _context.Reservations.Update(reservation);
-            await _context.SaveChangesAsync();
-
+            await _repository.UpdateAsync(reservation);
             await _stateManager.CancelReservationAsync(reservationId);
 
             return true;
@@ -179,14 +164,18 @@ public class ReservationService : IReservationService
     {
         return new ReservationResponseDto
         {
-            Id = reservation.Id,
-            UserId = reservation.UserId,
-            ServiceId = reservation.ServiceId,
-            DateTime = reservation.DateTime,
-            Status = reservation.Status,
-            Notes = reservation.Notes,
-            CreatedAt = reservation.CreatedAt,
-            UpdatedAt = reservation.UpdatedAt
+            Id          = reservation.Id,
+            UserId      = reservation.UserId,
+            UserName    = reservation.User?.Name    ?? $"Cliente #{reservation.UserId}",
+            ServiceId   = reservation.ServiceId,
+            ServiceName = reservation.Service?.Name ?? $"Servicio #{reservation.ServiceId}",
+            BarberId    = reservation.BarberId,
+            BarberName  = string.Empty, 
+            DateTime    = reservation.DateTime,
+            Status      = reservation.Status,
+            Notes       = reservation.Notes,
+            CreatedAt   = reservation.CreatedAt,
+            UpdatedAt   = reservation.UpdatedAt
         };
     }
 }
