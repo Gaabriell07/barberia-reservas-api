@@ -69,4 +69,22 @@ public class UsersController : ControllerBase
         if (!result) return NotFound("Usuario no encontrado.");
         return Ok("Usuario desactivado correctamente.");
     }
+
+    [HttpPut("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        try
+        {
+            var result = await _userService.ChangePasswordAsync(dto);
+            return Ok("Contraseña actualizada correctamente.");
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }

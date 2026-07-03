@@ -105,4 +105,24 @@ public class UserService : IUserService
             CreatedAt = user.CreatedAt
         };
     }
+
+    public async Task<bool> ChangePasswordAsync(ChangePasswordDto dto)
+    {
+        if (dto.NewPassword != dto.ConfirmPassword)
+            throw new ArgumentException("La nueva contraseña y la confirmación no coinciden.");
+
+        if (!_userValidator.IsValidPassword(dto.NewPassword))
+            throw new ArgumentException("La nueva contraseña debe tener al menos 8 caracteres.");
+
+        var user = await _userRepository.GetByIdAsync(dto.UserId);
+        if (user == null)
+            throw new KeyNotFoundException("Usuario no encontrado.");
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+            throw new ArgumentException("La contraseña actual es incorrecta.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        await _userRepository.UpdateAsync(user);
+        return true;
+    }
 }
