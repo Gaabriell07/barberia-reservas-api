@@ -22,4 +22,24 @@ public class ServiceManager : IServiceManager
     {
         return await _serviceRepository.GetByIdAsync(id);
     }
+
+        public async Task<Service> CreateServiceAsync(Service service)
+    {
+        return await _serviceRepository.AddAsync(service);
+    }
+
+    public async Task UpdateServiceAsync(Service service)
+    {
+        await _serviceRepository.UpdateAsync(service);
+    }
+
+    public async Task DeleteServiceAsync(int id)
+    {
+        var service = await _serviceRepository.GetByIdAsync(id);
+
+        if (service is null)
+            throw new Exception("Servicio no encontrado.");
+
+        await _serviceRepository.DeleteAsync(service);
+    }
 }
