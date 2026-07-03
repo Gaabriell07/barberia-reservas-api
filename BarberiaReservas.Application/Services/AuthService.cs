@@ -75,7 +75,8 @@ public class AuthService : IAuthService
             Token = token,
             Email = user.Email,
             Name  = user.Name,
-            Role  = user.Role
+            Role  = user.Role,
+            Phone = user.Phone
         };
     }
 }
