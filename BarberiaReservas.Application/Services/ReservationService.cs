@@ -10,15 +10,18 @@ public class ReservationService : IReservationService
     private readonly IReservationValidator _validator;
     private readonly IReservationStateManager _stateManager;
     private readonly IReservationRepository _repository;
+    private readonly INotificationService _notificationService;
 
     public ReservationService(
         IReservationValidator validator,
         IReservationStateManager stateManager,
-        IReservationRepository repository)
+        IReservationRepository repository,
+        INotificationService notificationService)
     {
         _validator = validator;
         _stateManager = stateManager;
         _repository = repository;
+        _notificationService = notificationService;
     }
 
     public async Task<ReservationResponseDto> GetReservationAsync(int id)
@@ -94,7 +97,12 @@ public class ReservationService : IReservationService
 
             var createdReservation = await _repository.CreateAsync(reservation);
 
-            return MapToDto(createdReservation);
+            // Recargar con navegaciones (User/Service) para poder notificar y mapear nombres correctamente.
+            var fullReservation = await _repository.GetByIdAsync(createdReservation.Id) ?? createdReservation;
+
+            await NotifyReservationAsync(fullReservation, "ReservationCreated", "Confirmación de reserva");
+
+            return MapToDto(fullReservation);
         }
         catch (Exception ex)
         {
@@ -152,11 +160,37 @@ public class ReservationService : IReservationService
             await _repository.UpdateAsync(reservation);
             await _stateManager.CancelReservationAsync(reservationId);
 
+            await NotifyReservationAsync(reservation, "ReservationCancelled", "Cancelación de reserva");
+
             return true;
         }
         catch
         {
             return false;
+        }
+    }
+
+    private async Task NotifyReservationAsync(Reservation reservation, string templateKey, string subject)
+    {
+        try
+        {
+            await _notificationService.SendAsync(new NotificationDto
+            {
+                Channel = "Email",
+                Recipient = reservation.User?.Email ?? string.Empty,
+                Subject = subject,
+                TemplateKey = templateKey,
+                Variables = new Dictionary<string, string>
+                {
+                    ["ClientName"] = reservation.User?.Name ?? $"Cliente #{reservation.UserId}",
+                    ["ServiceName"] = reservation.Service?.Name ?? $"Servicio #{reservation.ServiceId}",
+                    ["DateTime"] = reservation.DateTime.ToString("g")
+                }
+            });
+        }
+        catch
+        {
+            // La notificación es de mejor esfuerzo: no debe hacer fallar la operación de reserva.
         }
     }
 
