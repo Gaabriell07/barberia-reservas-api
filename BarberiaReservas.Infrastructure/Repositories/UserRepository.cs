@@ -48,4 +48,29 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users.AnyAsync(u => u.Email == email);
     }
+
+    public async Task<(IEnumerable<User> Users, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm)
+    {
+        var query = _context.Users.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(u => u.Name.Contains(searchTerm) ||
+                                      u.Email.Contains(searchTerm));
+        }
+
+        var totalCount = await query.CountAsync();
+        var users = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (users, totalCount);
+    }
+    public async Task<IEnumerable<User>> GetByRoleAsync(string roleName)
+    {
+        return await _context.Users
+            .Where(u => u.Role == roleName && u.IsActive)
+            .ToListAsync();
+    }
 }

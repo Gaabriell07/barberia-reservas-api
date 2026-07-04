@@ -87,9 +87,28 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null) return false;
 
+        if (!user.IsActive)
+            throw new InvalidOperationException("El usuario ya está desactivado.");
+
         user.IsActive = false;
         await _userRepository.UpdateAsync(user);
         return true;
+    }
+
+    public async Task<PagedResultDto<UserResponseDto>> GetPagedAsync(UserQueryDto query)
+    {
+        var (users, totalCount) = await _userRepository.GetPagedAsync(
+            query.PageNumber,
+            query.PageSize,
+            query.SearchTerm);
+
+        return new PagedResultDto<UserResponseDto>
+        {
+            Items = users.Select(MapToResponseDto),
+            TotalCount = totalCount,
+            PageNumber = query.PageNumber,
+            PageSize = query.PageSize
+        };
     }
 
     private UserResponseDto MapToResponseDto(User user)
@@ -104,5 +123,33 @@ public class UserService : IUserService
             IsActive = user.IsActive,
             CreatedAt = user.CreatedAt
         };
+    }
+
+    public async Task<bool> ChangePasswordAsync(ChangePasswordDto dto)
+    {
+        if (dto.NewPassword != dto.ConfirmPassword)
+            throw new ArgumentException("La nueva contraseña y la confirmación no coinciden.");
+
+        if (!_userValidator.IsValidPassword(dto.NewPassword))
+            throw new ArgumentException("La nueva contraseña debe tener al menos 8 caracteres.");
+
+        var user = await _userRepository.GetByIdAsync(dto.UserId);
+        if (user == null)
+            throw new KeyNotFoundException("Usuario no encontrado.");
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+            throw new ArgumentException("La contraseña actual es incorrecta.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        await _userRepository.UpdateAsync(user);
+        return true;
+    }
+    public async Task<IEnumerable<UserResponseDto>> GetByRoleAsync(string roleName)
+    {
+        if (!_roleManager.IsValidRole(roleName))
+            throw new ArgumentException("El rol especificado no es válido.");
+
+        var users = await _userRepository.GetByRoleAsync(roleName);
+        return users.Select(MapToResponseDto);
     }
 }

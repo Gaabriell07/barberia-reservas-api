@@ -65,8 +65,54 @@ public class UsersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Deactivate(int id)
     {
-        var result = await _userService.DeactivateAsync(id);
-        if (!result) return NotFound("Usuario no encontrado.");
-        return Ok("Usuario desactivado correctamente.");
+        try
+        {
+            var result = await _userService.DeactivateAsync(id);
+            if (!result) return NotFound("Usuario no encontrado.");
+            return Ok("Usuario desactivado y acceso bloqueado correctamente.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPut("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        try
+        {
+            var result = await _userService.ChangePasswordAsync(dto);
+            return Ok("Contraseña actualizada correctamente.");
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("paged")]
+    public async Task<IActionResult> GetPaged([FromQuery] UserQueryDto query)
+    {
+        var result = await _userService.GetPagedAsync(query);
+        return Ok(result);
+    }
+
+    [HttpGet("role/{roleName}")]
+    public async Task<IActionResult> GetByRole(string roleName)
+    {
+        try
+        {
+            var users = await _userService.GetByRoleAsync(roleName);
+            return Ok(users);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }
