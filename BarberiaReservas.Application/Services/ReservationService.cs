@@ -194,6 +194,28 @@ public class ReservationService : IReservationService
         }
     }
 
+    public async Task<ReservationReportDto> GetReservationReportAsync()
+    {
+        try
+        {
+            var reservations = await _repository.GetAllAsync();
+
+            var activeReservations = reservations.Where(r => r.Status != "Cancelled");
+
+            return new ReservationReportDto
+            {
+                TotalReservations = reservations.Count(),
+                CompletedReservations = reservations.Count(r => r.Status == "Completed"),
+                CancelledReservations = reservations.Count(r => r.Status == "Cancelled"),
+                EstimatedRevenue = activeReservations.Sum(r => r.Service?.Price ?? 0)
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error al generar el reporte de reservaciones: {ex.Message}");
+        }
+    }
+
     private ReservationResponseDto MapToDto(Reservation reservation)
     {
         return new ReservationResponseDto
