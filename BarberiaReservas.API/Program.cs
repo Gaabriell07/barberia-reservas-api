@@ -52,6 +52,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITemplateManager, TemplateManager>();
 builder.Services.AddScoped<INotificationChannel, EmailChannel>();
 builder.Services.AddScoped<INotificationChannel, SmsChannel>();
+builder.Services.AddScoped<INotificationLogRepository, NotificationLogRepository>();
 
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReservationValidator, ReservationValidator>();
