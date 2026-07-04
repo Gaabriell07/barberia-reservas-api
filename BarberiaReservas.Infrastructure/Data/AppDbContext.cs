@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<Reservation> Reservations { get; set; }
     public DbSet<WorkingHours> WorkingHours { get; set; }
     public DbSet<BlockedDate> BlockedDates { get; set; }
+    public DbSet<NotificationLog> NotificationLogs { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
