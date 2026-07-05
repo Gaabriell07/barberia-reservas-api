@@ -31,6 +31,20 @@ public class ReservationsController : ControllerBase
         }
     }
 
+    [HttpGet("reports")]
+    public async Task<IActionResult> GetReservationReport()
+    {
+        try
+        {
+            var report = await _reservationService.GetReservationReportAsync();
+            return Ok(report);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetReservation(int id)
     {
