@@ -1,9 +1,12 @@
 using BarberiaReservas.Application.DTOs;
 using BarberiaReservas.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace BarberiaReservas.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ReservationsController : ControllerBase
@@ -17,6 +20,7 @@ public class ReservationsController : ControllerBase
         _notificationService = notificationService;
     }
 
+    [Authorize(Roles = "Admin,Barber")]
     [HttpGet]
     public async Task<IActionResult> GetAllReservations()
     {
@@ -51,6 +55,16 @@ public class ReservationsController : ControllerBase
         try
         {
             var reservation = await _reservationService.GetReservationAsync(id);
+            if (reservation == null) return NotFound("Reservación no encontrada.");
+
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (currentUserRole != "Admin" && currentUserRole != "Barber" && reservation.UserId.ToString() != currentUserId)
+            {
+                return Forbid();
+            }
+
             return Ok(reservation);
         }
         catch (Exception ex)
@@ -64,6 +78,14 @@ public class ReservationsController : ControllerBase
     {
         try
         {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (currentUserRole != "Admin" && currentUserRole != "Barber" && userId.ToString() != currentUserId)
+            {
+                return Forbid();
+            }
+
             var reservations = await _reservationService.GetUserReservationsAsync(userId);
             return Ok(reservations);
         }
@@ -80,6 +102,14 @@ public class ReservationsController : ControllerBase
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (currentUserRole != "Admin" && dto.UserId.ToString() != currentUserId)
+            {
+                return Forbid();
+            }
 
             var reservation = await _reservationService.CreateReservationAsync(dto);
             return Created(nameof(GetReservation), reservation);
@@ -98,8 +128,19 @@ public class ReservationsController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var reservation = await _reservationService.UpdateReservationAsync(id, dto);
-            return Ok(reservation);
+            var reservation = await _reservationService.GetReservationAsync(id);
+            if (reservation == null) return NotFound("Reservación no encontrada.");
+
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (currentUserRole != "Admin" && reservation.UserId.ToString() != currentUserId)
+            {
+                return Forbid();
+            }
+
+            var updated = await _reservationService.UpdateReservationAsync(id, dto);
+            return Ok(updated);
         }
         catch (Exception ex)
         {
@@ -112,6 +153,17 @@ public class ReservationsController : ControllerBase
     {
         try
         {
+            var reservation = await _reservationService.GetReservationAsync(id);
+            if (reservation == null) return NotFound("Reservación no encontrada.");
+
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (currentUserRole != "Admin" && reservation.UserId.ToString() != currentUserId)
+            {
+                return Forbid();
+            }
+
             var result = await _reservationService.CancelReservationAsync(id);
             
             if (!result)

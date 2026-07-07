@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<WorkingHours> WorkingHours { get; set; }
     public DbSet<BlockedDate> BlockedDates { get; set; }
     public DbSet<NotificationLog> NotificationLogs { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +73,16 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Date);
             entity.Property(e => e.Reason).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Token).IsRequired().HasMaxLength(200);
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         SeedData(modelBuilder);

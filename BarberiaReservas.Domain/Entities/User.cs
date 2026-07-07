@@ -12,4 +12,5 @@ public class User
     public bool IsActive { get; set; } = true;
 
     public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }
