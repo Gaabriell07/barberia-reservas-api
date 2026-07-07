@@ -2,7 +2,11 @@ using BarberiaReservas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using BarberiaReservas.Application.Interfaces;
 using BarberiaReservas.Application.Services;
-using BarberiaReservas.Domain.Interfaces; // Para IUserRepository
+using BarberiaReservas.Domain.Interfaces;
+using BarberiaReservas.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +20,53 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1",
         Description = "Sistema de gestión de reservas para barbería"
     });
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Ingresa 'Bearer' seguido de un espacio y tu token JWT.\n\nEjemplo: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'"
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key is missing");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        ClockSkew = TimeSpan.Zero
+    };
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -35,28 +86,32 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IServiceManager, ServiceManager>();
+
 builder.Services.AddScoped<IUserRepository, BarberiaReservas.Infrastructure.Repositories.UserRepository>();
 builder.Services.AddScoped<IUserValidator, BarberiaReservas.Application.Services.UserValidator>();
 builder.Services.AddScoped<IRoleManager, BarberiaReservas.Application.Services.RoleManager>();
 builder.Services.AddScoped<IUserService, BarberiaReservas.Application.Services.UserService>();
 
-
-
 builder.Services.AddScoped<IAuthService, BarberiaReservas.Application.Services.AuthService>();
 builder.Services.AddScoped<ITokenGenerator, BarberiaReservas.Application.Services.JwtTokenGenerator>();
 builder.Services.AddScoped<IPasswordHasher, BarberiaReservas.Application.Services.PasswordHasher>();
 
-//Notificaciones
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITemplateManager, TemplateManager>();
 builder.Services.AddScoped<INotificationChannel, EmailChannel>();
 builder.Services.AddScoped<INotificationChannel, SmsChannel>();
+builder.Services.AddScoped<INotificationLogRepository, NotificationLogRepository>();
 
-// Reservaciones
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReservationValidator, ReservationValidator>();
 builder.Services.AddScoped<IReservationStateManager, ReservationStateManager>();
 builder.Services.AddScoped<IReservationRepository, BarberiaReservas.Infrastructure.Repositories.ReservationRepository>();
+
+builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
+builder.Services.AddScoped<IWorkingHoursManager, WorkingHoursManager>();
+builder.Services.AddScoped<ITimeSlotGenerator, TimeSlotGenerator>();
 
 var app = builder.Build();
 
@@ -68,6 +123,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

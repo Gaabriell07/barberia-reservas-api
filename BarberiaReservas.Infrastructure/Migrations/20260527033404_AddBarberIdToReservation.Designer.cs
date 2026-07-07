@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BarberiaReservas.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260513203041_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260527033404_AddBarberIdToReservation")]
+    partial class AddBarberIdToReservation
     {
         
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -59,6 +59,9 @@ namespace BarberiaReservas.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("BarberId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -84,6 +87,8 @@ namespace BarberiaReservas.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BarberId");
 
                     b.HasIndex("ServiceId");
 
@@ -130,7 +135,7 @@ namespace BarberiaReservas.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 5, 13, 20, 30, 41, 280, DateTimeKind.Utc).AddTicks(1376),
+                            CreatedAt = new DateTime(2026, 5, 27, 3, 34, 3, 159, DateTimeKind.Utc).AddTicks(4290),
                             Description = "Corte de cabello tradicional con tijera y máquina",
                             DurationMinutes = 30,
                             IsActive = true,
@@ -140,7 +145,7 @@ namespace BarberiaReservas.Infrastructure.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 5, 13, 20, 30, 41, 280, DateTimeKind.Utc).AddTicks(1378),
+                            CreatedAt = new DateTime(2026, 5, 27, 3, 34, 3, 159, DateTimeKind.Utc).AddTicks(4293),
                             Description = "Arreglo y perfilado de barba",
                             DurationMinutes = 20,
                             IsActive = true,
@@ -150,7 +155,7 @@ namespace BarberiaReservas.Infrastructure.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 5, 13, 20, 30, 41, 280, DateTimeKind.Utc).AddTicks(1379),
+                            CreatedAt = new DateTime(2026, 5, 27, 3, 34, 3, 159, DateTimeKind.Utc).AddTicks(4295),
                             Description = "Combo completo de corte y barba",
                             DurationMinutes = 45,
                             IsActive = true,
@@ -160,7 +165,7 @@ namespace BarberiaReservas.Infrastructure.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 5, 13, 20, 30, 41, 280, DateTimeKind.Utc).AddTicks(1381),
+                            CreatedAt = new DateTime(2026, 5, 27, 3, 34, 3, 159, DateTimeKind.Utc).AddTicks(4297),
                             Description = "Afeitado con navaja y toalla caliente",
                             DurationMinutes = 25,
                             IsActive = true,
@@ -216,11 +221,11 @@ namespace BarberiaReservas.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 5, 13, 20, 30, 41, 280, DateTimeKind.Utc).AddTicks(644),
+                            CreatedAt = new DateTime(2026, 5, 27, 3, 34, 3, 159, DateTimeKind.Utc).AddTicks(3496),
                             Email = "admin@barberia.com",
                             IsActive = true,
                             Name = "Administrador",
-                            PasswordHash = "$2a$11$cutXrF.tmnS6KMXJ8g.qnO27ZhdhPIBansA7OQnpa6TLDY4DYbp96",
+                            PasswordHash = "$2a$11$o37CBvXNyjTlWl3uEuPz1uAKkPLR9qOyQ1nNl8/l0TX6PoWBglL7e",
                             Phone = "999888777",
                             Role = "Admin"
                         });
@@ -305,6 +310,12 @@ namespace BarberiaReservas.Infrastructure.Migrations
 
             modelBuilder.Entity("BarberiaReservas.Domain.Entities.Reservation", b =>
                 {
+                    b.HasOne("BarberiaReservas.Domain.Entities.User", "Barber")
+                        .WithMany()
+                        .HasForeignKey("BarberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("BarberiaReservas.Domain.Entities.Service", "Service")
                         .WithMany("Reservations")
                         .HasForeignKey("ServiceId")
@@ -316,6 +327,8 @@ namespace BarberiaReservas.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Barber");
 
                     b.Navigation("Service");
 

@@ -1,4 +1,4 @@
-﻿using BarberiaReservas.Domain.Entities;
+using BarberiaReservas.Domain.Entities;
 using BarberiaReservas.Domain.Interfaces;
 using BarberiaReservas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +27,7 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByEmailAsync(string email)
     {
         return await _context.Users
+            .Include(u => u.RefreshTokens)
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
@@ -47,5 +48,38 @@ public class UserRepository : IUserRepository
     public async Task<bool> ExistsEmailAsync(string email)
     {
         return await _context.Users.AnyAsync(u => u.Email == email);
+    }
+
+    public async Task<(IEnumerable<User> Users, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm)
+    {
+        var query = _context.Users.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(u => u.Name.Contains(searchTerm) ||
+                                      u.Email.Contains(searchTerm));
+        }
+
+        var totalCount = await query.CountAsync();
+        var users = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (users, totalCount);
+    }
+
+    public async Task<IEnumerable<User>> GetByRoleAsync(string roleName)
+    {
+        return await _context.Users
+            .Where(u => u.Role == roleName && u.IsActive)
+            .ToListAsync();
+    }
+
+    public async Task<User?> GetByRefreshTokenAsync(string token)
+    {
+        return await _context.Users
+            .Include(u => u.RefreshTokens)
+            .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
     }
 }

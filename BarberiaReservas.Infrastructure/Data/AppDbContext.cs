@@ -14,12 +14,13 @@ public class AppDbContext : DbContext
     public DbSet<Reservation> Reservations { get; set; }
     public DbSet<WorkingHours> WorkingHours { get; set; }
     public DbSet<BlockedDate> BlockedDates { get; set; }
+    public DbSet<NotificationLog> NotificationLogs { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
-        // User
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -29,8 +30,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Role).HasMaxLength(20);
             entity.Property(e => e.PasswordHash).IsRequired();
         });
-        
-        // Service
+
         modelBuilder.Entity<Service>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -38,8 +38,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Price).HasColumnType("decimal(10,2)");
         });
-        
-        // Reservation
+
         modelBuilder.Entity<Reservation>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -47,6 +46,11 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Reservations)
                 .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasOne(e => e.Barber)
+                .WithMany()
+                .HasForeignKey(e => e.BarberId)
                 .OnDelete(DeleteBehavior.Restrict);
             
             entity.HasOne(e => e.Service)
@@ -57,29 +61,36 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Status).HasMaxLength(20);
             entity.Property(e => e.Notes).HasMaxLength(500);
         });
-        
-        // WorkingHours
+
         modelBuilder.Entity<WorkingHours>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.DayOfWeek).IsRequired().HasMaxLength(20);
         });
-        
-        // BlockedDate
+
         modelBuilder.Entity<BlockedDate>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.Date);
             entity.Property(e => e.Reason).HasMaxLength(200);
         });
-        
-        // Seed initial data
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Token).IsRequired().HasMaxLength(200);
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         SeedData(modelBuilder);
     }
     
     private void SeedData(ModelBuilder modelBuilder)
     {
-        // Admin user (password: Admin123!)
+        
         modelBuilder.Entity<User>().HasData(
             new User
             {
@@ -93,8 +104,7 @@ public class AppDbContext : DbContext
                 IsActive = true
             }
         );
-        
-        // Services
+
         modelBuilder.Entity<Service>().HasData(
             new Service 
             { 
@@ -137,8 +147,7 @@ public class AppDbContext : DbContext
                 CreatedAt = DateTime.UtcNow
             }
         );
-        
-        // Working Hours (Monday to Saturday, 9am - 6pm)
+
         var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
         for (int i = 0; i < days.Length; i++)
         {

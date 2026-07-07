@@ -1,4 +1,4 @@
-﻿using BarberiaReservas.Application.DTOs;
+using BarberiaReservas.Application.DTOs;
 using BarberiaReservas.Application.Interfaces;
 using BarberiaReservas.Domain.Entities;
 using BarberiaReservas.Domain.Interfaces;
@@ -10,15 +10,18 @@ public class ReservationService : IReservationService
     private readonly IReservationValidator _validator;
     private readonly IReservationStateManager _stateManager;
     private readonly IReservationRepository _repository;
+    private readonly INotificationService _notificationService;
 
     public ReservationService(
         IReservationValidator validator,
         IReservationStateManager stateManager,
-        IReservationRepository repository)
+        IReservationRepository repository,
+        INotificationService notificationService)
     {
         _validator = validator;
         _stateManager = stateManager;
         _repository = repository;
+        _notificationService = notificationService;
     }
 
     public async Task<ReservationResponseDto> GetReservationAsync(int id)
@@ -76,16 +79,16 @@ public class ReservationService : IReservationService
     {
         try
         {
-            // Validar el DTO
+            
             var isValid = await _validator.ValidateAsync(dto);
             if (!isValid)
                 throw new Exception(_validator.GetLastError() ?? "Validación fallida");
 
-            // Crear la nueva reservación
             var reservation = new Reservation
             {
                 UserId = dto.UserId,
                 ServiceId = dto.ServiceId,
+                BarberId = dto.BarberId,
                 DateTime = dto.DateTime,
                 Notes = dto.Notes,
                 Status = "Pending",
@@ -94,7 +97,12 @@ public class ReservationService : IReservationService
 
             var createdReservation = await _repository.CreateAsync(reservation);
 
-            return MapToDto(createdReservation);
+            // Recargar con navegaciones (User/Service) para poder notificar y mapear nombres correctamente.
+            var fullReservation = await _repository.GetByIdAsync(createdReservation.Id) ?? createdReservation;
+
+            await NotifyReservationAsync(fullReservation, "ReservationCreated", "Confirmación de reserva");
+
+            return MapToDto(fullReservation);
         }
         catch (Exception ex)
         {
@@ -109,7 +117,6 @@ public class ReservationService : IReservationService
             if (id <= 0)
                 throw new Exception("ID inválido");
 
-            // Validar el DTO
             var isValid = await _validator.ValidateUpdateAsync(dto);
             if (!isValid)
                 throw new Exception(_validator.GetLastError() ?? "Validación fallida");
@@ -119,7 +126,6 @@ public class ReservationService : IReservationService
             if (reservation == null)
                 throw new Exception("Reservación no encontrada");
 
-            // Actualizar los campos
             reservation.ServiceId = dto.ServiceId;
             reservation.DateTime = dto.DateTime;
             reservation.Notes = dto.Notes;
@@ -154,6 +160,8 @@ public class ReservationService : IReservationService
             await _repository.UpdateAsync(reservation);
             await _stateManager.CancelReservationAsync(reservationId);
 
+            await NotifyReservationAsync(reservation, "ReservationCancelled", "Cancelación de reserva");
+
             return true;
         }
         catch
@@ -162,18 +170,68 @@ public class ReservationService : IReservationService
         }
     }
 
+    private async Task NotifyReservationAsync(Reservation reservation, string templateKey, string subject)
+    {
+        try
+        {
+            await _notificationService.SendAsync(new NotificationDto
+            {
+                Channel = "Email",
+                Recipient = reservation.User?.Email ?? string.Empty,
+                Subject = subject,
+                TemplateKey = templateKey,
+                Variables = new Dictionary<string, string>
+                {
+                    ["ClientName"] = reservation.User?.Name ?? $"Cliente #{reservation.UserId}",
+                    ["ServiceName"] = reservation.Service?.Name ?? $"Servicio #{reservation.ServiceId}",
+                    ["DateTime"] = reservation.DateTime.ToString("g")
+                }
+            });
+        }
+        catch
+        {
+            // La notificación es de mejor esfuerzo: no debe hacer fallar la operación de reserva.
+        }
+    }
+
+    public async Task<ReservationReportDto> GetReservationReportAsync()
+    {
+        try
+        {
+            var reservations = await _repository.GetAllAsync();
+
+            var activeReservations = reservations.Where(r => r.Status != "Cancelled");
+
+            return new ReservationReportDto
+            {
+                TotalReservations = reservations.Count(),
+                CompletedReservations = reservations.Count(r => r.Status == "Completed"),
+                CancelledReservations = reservations.Count(r => r.Status == "Cancelled"),
+                EstimatedRevenue = activeReservations.Sum(r => r.Service?.Price ?? 0)
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error al generar el reporte de reservaciones: {ex.Message}");
+        }
+    }
+
     private ReservationResponseDto MapToDto(Reservation reservation)
     {
         return new ReservationResponseDto
         {
-            Id = reservation.Id,
-            UserId = reservation.UserId,
-            ServiceId = reservation.ServiceId,
-            DateTime = reservation.DateTime,
-            Status = reservation.Status,
-            Notes = reservation.Notes,
-            CreatedAt = reservation.CreatedAt,
-            UpdatedAt = reservation.UpdatedAt
+            Id          = reservation.Id,
+            UserId      = reservation.UserId,
+            UserName    = reservation.User?.Name    ?? $"Cliente #{reservation.UserId}",
+            ServiceId   = reservation.ServiceId,
+            ServiceName = reservation.Service?.Name ?? $"Servicio #{reservation.ServiceId}",
+            BarberId    = reservation.BarberId,
+            BarberName  = reservation.Barber?.Name ?? $"Barbero #{reservation.BarberId}",
+            DateTime    = reservation.DateTime,
+            Status      = reservation.Status,
+            Notes       = reservation.Notes,
+            CreatedAt   = reservation.CreatedAt,
+            UpdatedAt   = reservation.UpdatedAt
         };
     }
 }

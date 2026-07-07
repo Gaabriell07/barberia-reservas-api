@@ -23,7 +23,7 @@ public class AuthService : IAuthService
         _userRepository = userRepository;
     }
 
-    public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
+    public async Task<AuthResponseDto> LoginAsync(LoginDto dto, string ipAddress)
     {
         var user = await _userRepository.GetByEmailAsync(dto.Email);
 
@@ -36,11 +36,15 @@ public class AuthService : IAuthService
             throw new Exception("Contraseña incorrecta");
 
         var token = _tokenGenerator.GenerateToken(user);
+        var refreshToken = GenerateRefreshToken(ipAddress);
 
-        return BuildAuthResponse(user, token);
+        user.RefreshTokens.Add(refreshToken);
+        await _userRepository.UpdateAsync(user);
+
+        return BuildAuthResponse(user, token, refreshToken.Token);
     }
 
-    public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
+    public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto, string ipAddress)
     {
         var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
 
@@ -60,21 +64,67 @@ public class AuthService : IAuthService
             IsActive = true
         };
 
+        var refreshToken = GenerateRefreshToken(ipAddress);
+        user.RefreshTokens.Add(refreshToken);
+
         await _userRepository.CreateAsync(user);
 
         var token = _tokenGenerator.GenerateToken(user);
 
-        return BuildAuthResponse(user, token);
+        return BuildAuthResponse(user, token, refreshToken.Token);
     }
 
-    private AuthResponseDto BuildAuthResponse(User user, string token)
+    public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenRequestDto dto, string ipAddress)
+    {
+        var user = await _userRepository.GetByRefreshTokenAsync(dto.RefreshToken);
+        
+        if (user == null)
+            throw new Exception("Token de refresco inválido");
+
+        var activeToken = user.RefreshTokens.SingleOrDefault(x => x.Token == dto.RefreshToken);
+
+        if (activeToken == null || !activeToken.IsActive)
+            throw new Exception("Token de refresco inactivo");
+
+        var newRefreshToken = GenerateRefreshToken(ipAddress);
+        activeToken.Revoked = DateTime.UtcNow;
+        activeToken.RevokedByIp = ipAddress;
+        activeToken.ReplacedByToken = newRefreshToken.Token;
+
+        user.RefreshTokens.Add(newRefreshToken);
+        await _userRepository.UpdateAsync(user);
+
+        var jwtToken = _tokenGenerator.GenerateToken(user);
+
+        return BuildAuthResponse(user, jwtToken, newRefreshToken.Token);
+    }
+
+    private RefreshToken GenerateRefreshToken(string ipAddress)
+    {
+        var randomBytes = new byte[64];
+        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        rng.GetBytes(randomBytes);
+        
+        return new RefreshToken
+        {
+            Token = Convert.ToBase64String(randomBytes),
+            Expires = DateTime.UtcNow.AddDays(7),
+            Created = DateTime.UtcNow,
+            CreatedByIp = ipAddress
+        };
+    }
+
+    private AuthResponseDto BuildAuthResponse(User user, string token, string refreshToken)
     {
         return new AuthResponseDto
         {
+            Id    = user.Id,
             Token = token,
             Email = user.Email,
-            Name = user.Name,
-            Role = user.Role
+            Name  = user.Name,
+            Role  = user.Role,
+            Phone = user.Phone,
+            RefreshToken = refreshToken
         };
     }
 }

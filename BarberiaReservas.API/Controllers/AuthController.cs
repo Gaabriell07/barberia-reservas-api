@@ -22,7 +22,8 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var result = await _authService.LoginAsync(dto);
+            var ipAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            var result = await _authService.LoginAsync(dto, ipAddress);
             return Ok(result);
         }
         catch (Exception ex)
@@ -36,7 +37,23 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var result = await _authService.RegisterAsync(dto);
+            var ipAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            var result = await _authService.RegisterAsync(dto, ipAddress);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto dto)
+    {
+        try
+        {
+            var ipAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
+            var result = await _authService.RefreshTokenAsync(dto, ipAddress);
             return Ok(result);
         }
         catch (Exception ex)

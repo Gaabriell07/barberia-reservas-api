@@ -1,4 +1,4 @@
-﻿using BarberiaReservas.Domain.Entities;
+using BarberiaReservas.Domain.Entities;
 
 namespace BarberiaReservas.Domain.Interfaces;
 
@@ -10,4 +10,7 @@ public interface IUserRepository
     Task<User> CreateAsync(User user);
     Task<User> UpdateAsync(User user);
     Task<bool> ExistsEmailAsync(string email);
+    Task<(IEnumerable<User> Users, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, string? searchTerm);
+    Task<IEnumerable<User>> GetByRoleAsync(string roleName);
+    Task<User?> GetByRefreshTokenAsync(string token);
 }

@@ -19,6 +19,7 @@ public class ReservationRepository : IReservationRepository
         return await _context.Reservations
             .Include(r => r.User)
             .Include(r => r.Service)
+            .Include(r => r.Barber)
             .FirstOrDefaultAsync(r => r.Id == id);
     }
 
@@ -27,6 +28,7 @@ public class ReservationRepository : IReservationRepository
         return await _context.Reservations
             .Include(r => r.User)
             .Include(r => r.Service)
+            .Include(r => r.Barber)
             .OrderByDescending(r => r.DateTime)
             .ToListAsync();
     }
@@ -36,7 +38,19 @@ public class ReservationRepository : IReservationRepository
         return await _context.Reservations
             .Include(r => r.User)
             .Include(r => r.Service)
+            .Include(r => r.Barber)
             .Where(r => r.UserId == userId)
+            .OrderByDescending(r => r.DateTime)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Reservation>> GetByBarberIdAsync(int barberId)
+    {
+        return await _context.Reservations
+            .Include(r => r.User)
+            .Include(r => r.Service)
+            .Include(r => r.Barber)
+            .Where(r => r.BarberId == barberId)
             .OrderByDescending(r => r.DateTime)
             .ToListAsync();
     }

@@ -1,9 +1,12 @@
 using BarberiaReservas.Application.DTOs;
 using BarberiaReservas.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace BarberiaReservas.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ReservationsController : ControllerBase
@@ -17,9 +20,7 @@ public class ReservationsController : ControllerBase
         _notificationService = notificationService;
     }
 
-    /// <summary>
-    /// Obtiene todas las reservaciones
-    /// </summary>
+    [Authorize(Roles = "Admin,Barber")]
     [HttpGet]
     public async Task<IActionResult> GetAllReservations()
     {
@@ -34,15 +35,36 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Obtiene una reservación por ID
-    /// </summary>
+    [HttpGet("reports")]
+    public async Task<IActionResult> GetReservationReport()
+    {
+        try
+        {
+            var report = await _reservationService.GetReservationReportAsync();
+            return Ok(report);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetReservation(int id)
     {
         try
         {
             var reservation = await _reservationService.GetReservationAsync(id);
+            if (reservation == null) return NotFound("Reservación no encontrada.");
+
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (currentUserRole != "Admin" && currentUserRole != "Barber" && reservation.UserId.ToString() != currentUserId)
+            {
+                return Forbid();
+            }
+
             return Ok(reservation);
         }
         catch (Exception ex)
@@ -51,14 +73,19 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Obtiene las reservaciones de un usuario
-    /// </summary>
     [HttpGet("user/{userId}")]
     public async Task<IActionResult> GetUserReservations(int userId)
     {
         try
         {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (currentUserRole != "Admin" && currentUserRole != "Barber" && userId.ToString() != currentUserId)
+            {
+                return Forbid();
+            }
+
             var reservations = await _reservationService.GetUserReservationsAsync(userId);
             return Ok(reservations);
         }
@@ -68,9 +95,6 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Crea una nueva reservación
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> CreateReservation([FromBody] CreateReservationDto dto)
     {
@@ -78,6 +102,14 @@ public class ReservationsController : ControllerBase
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (currentUserRole != "Admin" && dto.UserId.ToString() != currentUserId)
+            {
+                return Forbid();
+            }
 
             var reservation = await _reservationService.CreateReservationAsync(dto);
             return Created(nameof(GetReservation), reservation);
@@ -88,9 +120,6 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Actualiza una reservación existente
-    /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateReservation(int id, [FromBody] UpdateReservationDto dto)
     {
@@ -99,8 +128,19 @@ public class ReservationsController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var reservation = await _reservationService.UpdateReservationAsync(id, dto);
-            return Ok(reservation);
+            var reservation = await _reservationService.GetReservationAsync(id);
+            if (reservation == null) return NotFound("Reservación no encontrada.");
+
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (currentUserRole != "Admin" && reservation.UserId.ToString() != currentUserId)
+            {
+                return Forbid();
+            }
+
+            var updated = await _reservationService.UpdateReservationAsync(id, dto);
+            return Ok(updated);
         }
         catch (Exception ex)
         {
@@ -108,14 +148,22 @@ public class ReservationsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Cancela una reservación
-    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> CancelReservation(int id)
     {
         try
         {
+            var reservation = await _reservationService.GetReservationAsync(id);
+            if (reservation == null) return NotFound("Reservación no encontrada.");
+
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (currentUserRole != "Admin" && reservation.UserId.ToString() != currentUserId)
+            {
+                return Forbid();
+            }
+
             var result = await _reservationService.CancelReservationAsync(id);
             
             if (!result)

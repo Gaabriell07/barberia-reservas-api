@@ -9,10 +9,14 @@ namespace BarberiaReservas.API.Controllers;
 public class NotificationsController : ControllerBase
 {
     private readonly INotificationService _notificationService;
+    private readonly INotificationLogRepository _logRepository;
 
-    public NotificationsController(INotificationService notificationService)
+    public NotificationsController(
+        INotificationService notificationService,
+        INotificationLogRepository logRepository)
     {
         _notificationService = notificationService;
+        _logRepository = logRepository;
     }
 
     [HttpPost("send")]
@@ -24,5 +28,12 @@ public class NotificationsController : ControllerBase
             return BadRequest(result);
 
         return Ok(result);
+    }
+
+    [HttpGet("logs")]
+    public async Task<IActionResult> GetLogs()
+    {
+        var logs = await _logRepository.GetAllAsync();
+        return Ok(logs);
     }
 }
