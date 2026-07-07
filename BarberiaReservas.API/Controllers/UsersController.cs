@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace BarberiaReservas.API.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
@@ -32,6 +32,7 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUserDto dto)
     {
@@ -46,6 +47,7 @@ public class UsersController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateUserDto dto)
     {
@@ -64,6 +66,7 @@ public class UsersController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Deactivate(int id)
     {
